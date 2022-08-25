@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:possi_build/NavigationPage.dart';
 import 'package:possi_build/screens/SigninPage.dart';
 import 'package:possi_build/screens/SignupPage.dart';
 
@@ -20,11 +21,11 @@ class MyApp extends StatelessWidget {
           textTheme: Theme.of(context).textTheme.apply(
               bodyColor: const Color(0xff000000),
               displayColor: const Color(0xffffffff))),
-      home: const SignIn(),
+      home: SignIn(),
       // SignIn(),
       routes: {
-        '/signin/': (context) => const SignIn(),
-        '/signup/': (context) => const SignUp(),
+        '/signin': (context) => const SignIn(),
+        '/signup': (context) => const SignUp(),
       },
     );
   }

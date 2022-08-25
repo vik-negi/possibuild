@@ -9,8 +9,6 @@ import 'package:possi_build/utils/validator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:rflutter_alert/rflutter_alert.dart';
-
 class SignIn extends StatefulWidget {
   const SignIn({Key? key}) : super(key: key);
 
@@ -189,46 +187,25 @@ class _SignInState extends State<SignIn> {
                             onPressed: () async {
                               _focusEmail.unfocus();
                               _focusPassword.unfocus();
-                              // unstop
+
                               if (_formKey.currentState!.validate()) {
                                 setState(() {
                                   _isProcessing = true;
                                 });
+                                // final user = await
+                                signinUser(emailController.text,
+                                    passwordController.text);
+                                // if (user != null) {
+                                //   await Navigator.push(
+                                //     context,
+                                //     MaterialPageRoute(
+                                //       builder: ((context) => NavigatorMenu(
+                                //             userModel: user,
+                                //           )),
+                                //     ),
+                                //   );
+                                // }
 
-                                try {
-                                  final user = await signinUser(
-                                      emailController.text,
-                                      passwordController.text);
-                                  await Future.delayed(
-                                      const Duration(seconds: 1));
-
-                                  if (user == null) {
-                                    Alert(
-                                            context: context,
-                                            title: "Invalid Credientials",
-                                            desc:
-                                                "Invalid username or password",
-                                            style: const AlertStyle(
-                                                descStyle: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.grey)))
-                                        .show();
-                                  }
-                                  if (user != null) {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: ((context) =>
-                                            NavigatorMenu(userModel: user)),
-                                      ),
-                                    );
-                                  }
-                                } catch (e) {
-                                  throw Exception(e);
-                                }
-
-                                setState(() {
-                                  _isProcessing = false;
-                                });
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -238,7 +215,7 @@ class _SignInState extends State<SignIn> {
                               primary: const Color.fromARGB(255, 43, 47, 51),
                             ),
                             child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 1500),
+                              duration: const Duration(milliseconds: 1000),
                               width: _isProcessing
                                   ? 50
                                   : MediaQuery.of(context).size.width,
@@ -336,17 +313,35 @@ class _SignInState extends State<SignIn> {
 
     http.Response response = await http.post(Uri.parse(url), body: userData);
     mapResponce = await json.decode(response.body);
-    userData = mapResponce["userData"];
+    if (mapResponce["userData"] != null) {
+      userData = mapResponce["userData"];
+    }
 
-    if (response.statusCode == 201 || response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       UserModel userModel = UserModel(
         firstName: userData['firstName'],
         lastName: userData['lastName'],
         email: userData['email'],
         password: userData['password'],
       );
-      return userModel;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: ((context) => NavigatorMenu(
+                userModel: userModel,
+                userdata: userData,
+              )),
+        ),
+      );
+
+      // return userModel;
+    } else if (mapResponce["userData"] == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(mapResponce["message"].toString())));
     }
-    return null;
+
+    setState(() {
+      _isProcessing = false;
+    });
   }
 }

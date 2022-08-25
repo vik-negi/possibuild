@@ -26,17 +26,11 @@ class _SignUpState extends State<SignUp> {
   final _focusName = FocusNode();
 
   bool _rembemberMe = false;
-  bool _isProcessing = false;
   String url = 'https://api-telly-tell.herokuapp.com/api/client/signup';
 
   Future createUser(
       String firstName, String lastName, String email, String password) async {
-    // UserModel userData = UserModel(
-    //     firstName: firstName,
-    //     lastName: lastName,
-    //     email: email,
-    //     password: password);
-    Map<String, String> userData = {
+    Map<dynamic, dynamic> userData = {
       "firstName": firstName,
       "lastName": lastName,
       "email": email,
@@ -47,7 +41,13 @@ class _SignUpState extends State<SignUp> {
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(userData));
-    return response.body;
+    userData = json.decode(response.body);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      Navigator.pushNamed(context, '/signin');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(userData["message"].toString())));
+    }
   }
 
   @override
@@ -61,11 +61,9 @@ class _SignUpState extends State<SignUp> {
         _focusUserName.unfocus();
       },
       child: Scaffold(
-        // resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
             scrollDirection: Axis.vertical,
             child: Container(
-              // height: 850,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15),
                 color: const Color.fromARGB(255, 245, 245, 245),
@@ -89,8 +87,6 @@ class _SignUpState extends State<SignUp> {
                           const Text(
                             "We Are Excited to\nOnboard you",
                             style: TextStyle(
-                              // color: Color.fromARGB(
-                              // 255, 235, 235, 235),
                               fontSize: 32,
                               fontWeight: FontWeight.w500,
                             ),
@@ -192,10 +188,7 @@ class _SignUpState extends State<SignUp> {
                                       SizedBox(
                                         height: 30,
                                         child: TextButton(
-                                          onPressed: () {
-                                            Navigator.pushNamed(
-                                                context, "./signin");
-                                          },
+                                          onPressed: () {},
                                           child: const Text("Term and Service",
                                               style: TextStyle(
                                                 fontSize: 12,
@@ -209,16 +202,11 @@ class _SignUpState extends State<SignUp> {
                                       const Text("and",
                                           style: TextStyle(
                                             fontSize: 12,
-                                            // color: Color.fromARGB(
-                                            // 255, 211, 211, 211),
                                           )),
                                       SizedBox(
-                                        // width: 250,
                                         height: 30,
                                         child: TextButton(
                                           onPressed: () {
-                                            // Navigator.pushNamed(
-                                            // context, "./signin");
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
                                                 builder: (content) =>
@@ -241,59 +229,40 @@ class _SignUpState extends State<SignUp> {
                           const SizedBox(
                             height: 25,
                           ),
-                          if (_isProcessing)
-                            const CircularProgressIndicator()
-                          else
-                            Container(
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(35)),
-                              height: 50,
-                              width: MediaQuery.of(context).size.width,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  if (_registerFormKey.currentState!
-                                      .validate()) {
-                                    setState(() {
-                                      _isProcessing = true;
-                                    });
-                                    try {
-                                      final userModel = createUser(
-                                          nameController.text
-                                              .split(" ")[0]
-                                              .toString(),
-                                          nameController.text
-                                              .split(" ")[1]
-                                              .toString(),
-                                          emailController.text,
-                                          passwordController.text);
-                                      if (userModel != null) {
-                                        Navigator.pushNamed(
-                                            context, '/signin/');
-                                      }
-                                    } catch (e) {
-                                      throw Exception(e);
-                                    }
-                                    setState(() {
-                                      _isProcessing = false;
-                                    });
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(35),
-                                  ),
-                                  primary:
-                                      const Color.fromARGB(255, 43, 47, 51),
+                          Container(
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(35)),
+                            height: 50,
+                            width: MediaQuery.of(context).size.width,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                if (_registerFormKey.currentState!.validate()) {
+                                  await createUser(
+                                      nameController.text
+                                          .split(" ")[0]
+                                          .toString(),
+                                      nameController.text.contains(" ")
+                                          ? nameController.text.split(" ")[1]
+                                          : "",
+                                      emailController.text,
+                                      passwordController.text);
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(35),
                                 ),
-                                child: const Text(
-                                  "Sign Up",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                primary: const Color.fromARGB(255, 43, 47, 51),
+                              ),
+                              child: const Text(
+                                "Sign Up",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
+                          ),
                           const SizedBox(height: 20),
                         ],
                       ),
